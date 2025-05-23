@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Car Rental Management System</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; }
+        h2 { color: #333; }
+        form { margin-bottom: 20px; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        input, select, button { margin: 5px; padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
+        table { width: 100%; border-collapse: collapse; background: #fff; margin-top: 20px; }
+        th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
+        th { background: #eee; }
+        .form-section { margin-bottom: 40px; }
+    </style>
+</head>
+<body>
+
+<h2>Add New Car</h2>
+<form action="/add_car" method="POST">
+    <input type="text" name="brand" placeholder="Brand" required>
+    <input type="text" name="model" placeholder="Model" required>
+    <input type="number" name="year" placeholder="Year" required>
+    <input type="number" step="0.01" name="price_per_day" placeholder="Price/Day" required>
+    <select name="status">
+        <option value="Available">Available</option>
+        <option value="Rented">Rented</option>
+    </select>
+    <button type="submit">Add Car</button>
+</form>
+
+<h2>Add New Customer</h2>
+<form action="/add_customer" method="POST">
+    <input type="text" name="name" placeholder="Name" required>
+    <input type="text" name="contact" placeholder="Contact" required>
+    <input type="text" name="license_number" placeholder="License Number" required>
+    <button type="submit">Add Customer</button>
+</form>
+
+<h2>New Rental</h2>
+<form action="/add_rental" method="POST">
+    <select name="car_id">
+        {% for car in cars %}
+            <option value="{{ car[0] }}">{{ car[2] }} - {{ car[1] }}</option>
+        {% endfor %}
+    </select>
+    <select name="customer_id">
+        {% for customer in customers %}
+            <option value="{{ customer[0] }}">{{ customer[1] }}</option>
+        {% endfor %}
+    </select>
+    <input type="date" name="start_date" required>
+    <input type="date" name="end_date" required>
+    <button type="submit">Rent Car</button>
+</form>
+
+<h2>Cars</h2>
+<table>
+    <tr>
+        <th>ID</th><th>Brand</th><th>Model</th><th>Year</th><th>Price/Day</th><th>Status</th><th>Actions</th>
+    </tr>
+    {% for car in cars %}
+    <tr>
+        <form action="/edit_car" method="POST">
+            <td>{{ car[0] }}<input type="hidden" name="car_id" value="{{ car[0] }}"></td>
+            <td><input name="brand" value="{{ car[2] }}"></td>
+            <td><input name="model" value="{{ car[1] }}"></td>
+            <td><input name="year" type="number" value="{{ car[3] }}"></td>
+            <td><input name="price_per_day" type="number" step="0.01" value="{{ car[4] }}"></td>
+            <td>{{ car[5] }}<input type="hidden" name="status" value="{{ car[5] }}"></td>
+            <td><button type="submit">Update</button> <a href="/delete_car/{{ car[0] }}">Delete</a></td>
+        </form>
+    </tr>
+    {% endfor %}
+</table>
+
+<h2>Customers</h2>
+<table>
+    <tr>
+        <th>ID</th><th>Name</th><th>Contact</th><th>License Number</th><th>Actions</th>
+    </tr>
+    {% for customer in customers %}
+    <tr>
+        <form action="/edit_customer" method="POST">
+            <td>{{ customer[0] }}<input type="hidden" name="customer_id" value="{{ customer[0] }}"></td>
+            <td><input name="name" value="{{ customer[1] }}"></td>
+            <td><input name="contact" value="{{ customer[2] }}"></td>
+            <td><input name="license_number" value="{{ customer[3] }}"></td>
+            <td><button type="submit">Update</button> <a href="/delete_customer/{{ customer[0] }}">Delete</a></td>
+        </form>
+    </tr>
+    {% endfor %}
+</table>
+
+<h2>Rentals</h2>
+<table>
+    <tr>
+        <th>ID</th><th>Car</th><th>Customer</th><th>Start</th><th>End</th><th>Cost</th><th>Status</th><th>Update</th>
+    </tr>
+    {% for rental in rentals %}
+    <tr>
+        <form action="/update_rental_status" method="POST">
+            <td>{{ rental[0] }}</td>
+            <td>{{ rental[1] }}</td>
+            <td>{{ rental[2] }}</td>
+            <td>{{ rental[3] }}</td>
+            <td>{{ rental[4] }}</td>
+            <td>{{ rental[5] }}</td>
+            <td>
+                <input type="hidden" name="rental_id" value="{{ rental[0] }}">
+                <select name="new_status">
+                    <option value="Ongoing" {% if rental[6]=='Ongoing' %}selected{% endif %}>Ongoing</option>
+                    <option value="Finished" {% if rental[6]=='Finished' %}selected{% endif %}>Finished</option>
+                </select>
+            </td>
+            <td><button type="submit">Update</button></td>
+        </form>
+    </tr>
+    {% endfor %}
+</table>
+
+<h2>Payments</h2>
+<table>
+    <tr>
+        <th>ID</th><th>RentalID</th><th>Amount</th><th>Method</th><th>Status</th><th>Update</th>
+    </tr>
+    {% for payment in payments %}
+    <tr>
+        <form action="/update_payment_status" method="POST">
+            <td>{{ payment[0] }}</td>
+            <td>{{ payment[1] }}</td>
+            <td>{{ payment[2] }}</td>
+            <td>{{ payment[3] }}</td>
+            <td>{{ payment[4] }}</td>
+            <td>
+                <input type="hidden" name="payment_id" value="{{ payment[0] }}">
+                <select name="new_status">
+                    <option value="Pending" {% if payment[5]=='Pending' %}selected{% endif %}>Pending</option>
+                    <option value="Paid" {% if payment[5]=='Paid' %}selected{% endif %}>Paid</option>
+                </select>
+                <button type="submit">✔</button>
+            </td>
+        </form>
+    </tr>
+    {% endfor %}
+</table>
+
+</body>
+</html>
